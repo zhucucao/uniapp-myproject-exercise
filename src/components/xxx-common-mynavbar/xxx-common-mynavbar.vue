@@ -5,7 +5,7 @@
 			<view class="statusBar" :style="{height: statusBarHeight + 'px'}"></view>
 			<view class="titleBar" :style="{height:navBarHeight + 'px'}">
 				<view class="title">{{commonTitle}}</view>
-				<view class="search">
+				<view class="search" @click="toSearch">
 					<uni-icons class="icon" type="search" color="#888" size="18"></uni-icons>
 					<text class="text">搜索</text>
 				</view>
@@ -40,6 +40,12 @@
 	  navBarHeight.value = heights.navBarHeight
 	  totalHeight.value = heights.totalHeight
 	})
+	
+	const toSearch = () => {
+		uni.navigateTo({
+			url: '/pages/xianxiami/xxx-search'
+		})
+	}
 	
 	// // 状态栏
 	// const statusBarHeight = ref(0)

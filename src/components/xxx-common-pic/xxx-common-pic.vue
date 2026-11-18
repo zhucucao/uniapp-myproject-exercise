@@ -1,10 +1,10 @@
 <template>
 	<view class="image-content-">
 		<navigator class="image-container" v-if="!isMore" 
-		 :url="`/pages/xianxiami/xxx-sort-detail/xxx-sort-detail?type=${props.item?.type}`">
-			<view class="top-title-item ">{{props.item.timeTitle}}</view>
-			<image mode="aspectFill" :src="props.item.imageUrl" />
-			<view class="bottom-title-item">{{props.item.sortTitle}}</view>
+		 :url="`/pages/xianxiami/xxx-sort-detail/xxx-sort-detail?_id=${item._id}&name=${item.name}`">
+			<view class="top-title-item "> {{ formatRelativeTime(item.updateTime) }}</view>
+			<image mode="aspectFill" :src="item.picurl" />
+			<view class="bottom-title-item">{{item.name}}</view>
 		</navigator>
 
 		<navigator class="image-container" v-if="isMore" @click="moreSwitchTab">
@@ -18,16 +18,9 @@
 </template>
 
 <script setup lang="ts">
-	import { ref } from 'vue'
-	type CommonPicItem = {	
-	  id: number
-	  timeTitle: string
-	  sortTitle: string
-	  type: string
-	  imageUrl: string
-	}
+	import type {CommonPicItem}  from '@/types/xxm/xxxType';
 	
-	const props = defineProps<{
+	defineProps<{
 	  item?: CommonPicItem
 	  isMore?: boolean
 	}>();
@@ -36,6 +29,50 @@
 		uni.switchTab({
 			url : '/pages/xianxiami/xxxSort/xxxSort'
 		})
+	}
+	
+	
+	// 时间戳转相对时间
+	function formatRelativeTime(timestamp: number): string {
+	  const now = Date.now();
+	  const diff = now - timestamp;
+	
+	  const minute = 60 * 1000;
+	  const hour = 60 * minute;
+	  const day = 24 * hour;
+	  const month = 30 * day;
+	  const year = 365 * day;
+	
+	  // 防止时间戳无效或属于未来
+	  if (!Number.isFinite(timestamp) || timestamp <= 0) {
+	    return '未知时间';
+	  }
+	
+	  if (diff < 0) {
+	    return '刚刚';
+	  }
+	
+	  if (diff < minute) {
+	    return '1分钟内';
+	  }
+	
+	  if (diff < hour) {
+	    return `${Math.floor(diff / minute)}分钟前`;
+	  }
+	
+	  if (diff < day) {
+	    return `${Math.floor(diff / hour)}小时前`;
+	  }
+	
+	  if (diff < month) {
+	    return `${Math.floor(diff / day)}天前`;
+	  }
+	
+	  if (diff < year) {
+	    return `${Math.floor(diff / month)}个月前`;
+	  }
+	
+	  return `${Math.floor(diff / year)}年前`;
 	}
 	
 </script>

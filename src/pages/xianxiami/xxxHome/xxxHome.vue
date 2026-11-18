@@ -6,17 +6,9 @@
 			<view class="swipper-container">
 				<swiper :indicator-dots="true" indicator-active-color="#ffffff" :autoplay="true" :circular="true"
 					:interval="3000" :duration="500">
-					<swiper-item v-for="item in bannerImageArr" :key="item._id">
+					<swiper-item v-for="item in bannerImageArr" :key="item._id" @click="navicationToSortDetail(item)">
 						<image :src="item.picurl" mode="aspectFill" />
 					</swiper-item>
-
-					<!-- 	<swiper-item>
-						<image src="/static/wallpaper/banner2.jpg" mode="aspectFill" />
-					</swiper-item>
-
-					<swiper-item>
-						<image src="/static/wallpaper/banner3.jpg" mode="aspectFill" />
-					</swiper-item> -->
 				</swiper>
 			</view>
 
@@ -28,7 +20,7 @@
 				<view class="text-middle">
 					<swiper class="middle-swipper" :vertical="true" :autoplay="true" :interval="3000" :duration="500"
 						:circular="true">
-						<swiper-item @click="goTextDetailPage" v-for="item in commonTextArr">
+						<swiper-item @click="goTextDetailPage(item._id)" v-for="item in commonTextArr">
 							<text>{{item.title}}</text>
 						</swiper-item>
 						<!-- <swiper-item @click="goTextDetailPage">
@@ -57,27 +49,11 @@
 			<view class="day-image-container">
 				<view class="image-scroll-view-container">
 					<scroll-view scroll-x show-scrollbar class="image-scroll">
-						
-						<navigator :key="item._id" v-for="item in imageDayRamdomArr" url='/pages/xianxiami/xxx-sort-detail/xxx-sort-detail?type=girl' class="image-item">
+
+						<navigator :key="item._id" v-for="item in imageDayRamdomArr"
+							:url='`/pages/xianxiami/xxx-sort-detail/xxx-sort-detail?_id=${item.classid}&name=${item.nickname}`' class="image-item">
 							<image :src="item.smallPicurl" />
 						</navigator>
-						
-						<!-- 
-						<navigator url='/pages/xianxiami/xxx-sort-detail/xxx-sort-detail?type=girl' class="image-item">
-							<image src="/static/images/xxm/classify1.jpg" />
-						</navigator>
-
-						<navigator url='/pages/xianxiami/xxx-sort-detail/xxx-sort-detail?type=pet' class="image-item">
-							<image src="/static/images/xxm/classify2.jpg" />
-						</navigator>
-
-						<navigator url='/pages/xianxiami/xxx-sort-detail/xxx-sort-detail?type=sexy' class="image-item">
-							<image src="/static/images/xxm/classify2.jpg" />
-						</navigator>
-
-						<navigator url='/pages/xianxiami/xxx-sort-detail/xxx-sort-detail?type=sexy' class="image-item">
-							<image src="/static/images/xxm/classify2.jpg" />
-						</navigator> -->
 
 					</scroll-view>
 				</view>
@@ -93,7 +69,7 @@
 			</xxx-common-title>
 
 			<view class="image-grid-container-list">
-				<xxx-common-pic v-for="item in commonPicArr" :item="item"></xxx-common-pic>
+				<xxx-common-pic v-for="item in imageBigClassifyArr" :item="item"></xxx-common-pic>
 				<xxx-common-pic :isMore="true"></xxx-common-pic>
 			</view>
 		</view>
@@ -110,151 +86,92 @@
 			navigationStyle: "custom"
 		},
 	})
+	import type { HttpRequest, XxxApiResponse, BannerItem, CommonTextItem, DayRecommendImage,BigClassify } from '@/types/xxm/xxxType';
+	import {requestBannerList,requestNoticeList,requestDailyRecommend,requestBigClassify} from '@/api/xxxApi'
+	import { onShareTimeline } from '@dcloudio/uni-app'
+	
+	const getParam = (key: string, url: string): string => {
+	    const match = url.match(new RegExp(`(?:^|&)${key}=([^&]*)`));
+	    return match ? decodeURIComponent(match[1]) : '';
+	};
 
-	interface BannerItem {
-		_id : string,
-		picurl : string,
-		sort : number,
-		target : string,
-		url : string
+
+	const navicationToSortDetail = (item:BannerItem)=> {
+		const {_id,target,url,appid} = item;
+		console.log("aaaaaaaaaaaaaaaaaaaa",target,_id);
+		
+		if(!target) {
+			return;
+		}
+		if(target === "self") {
+			const name = getParam('name',url);
+			const id = getParam('id',url);
+			const sortUrl = `/pages/xianxiami/xxx-sort-detail/xxx-sort-detail?_id=${id}&name=${name}`;
+			uni.navigateTo({
+				url: sortUrl
+			})
+		}else if (target === "miniProgram") {
+			uni.navigateToMiniProgram({
+				appId:appid,
+				path:url
+			})
+		}
 	}
 
-	interface XxxApiResponse<T> {
-		author : string,
-		data : T,
-		errCode : number,
-		errMsg : string,
-		timeCost : number
-	}
-
-	interface CommonTextItem {
-		author : string,
-		publish_date : number,
-		select : boolean,
-		title : string,
-		view_count : number,
-		_id : string
-	}
-
-	interface DayRecommendImage {
-		description : string,
-		classid : string,
-		smallPicurl : string,
-		tabs : string[],
-		_id : string,
-		score : string,
-		nickname : string
-	}
-
-	const commonPicArr = ref([
-		{
-			id: 1,
-			timeTitle: "2月前更新",
-			sortTitle: "可爱萌宠",
-			type: "pet",
-			imageUrl: "/static/images/xxm/preview_small.webp"
-		},
-		{
-			id: 2,
-			timeTitle: "2分钟前更新",
-			sortTitle: "黑丝辣妹",
-			type: "girl",
-			imageUrl: "/static/images/xxm/classify2.jpg"
-		},
-		{
-			id: 3,
-			timeTitle: "1分钟前更新",
-			sortTitle: "性感尤物",
-			type: "sexy",
-			imageUrl: "/static/images/xxm/classify1.jpg"
-		},
-	])
-
-	const goTextDetailPage = () => {
+	const goTextDetailPage = (_id:string) => {
 		uni.navigateTo({
-			url: '/pages/xianxiami/xxx-notice/xxx-notice'
+			url: `/pages/xianxiami/xxx-notice/xxx-notice?_id=${_id}`
 		})
 	}
 	onMounted(() => {
-		console.log("--------------------------")
 		queryBaner();
-		queryCommonText();
-		getDayRandom();
+		queryNoticeList();
+		queryDailyRecommend();
+		queryBigClassify();
 	})
 
 	let bannerImageArr = ref<BannerItem[]>([]);
 	let commonTextArr = ref<CommonTextItem[]>([]);
 
-	const imageDayRamdomArr = ref<DayRecommendImage[]>([]);
+	let imageDayRamdomArr = ref<DayRecommendImage[]>([]);
+	
+	let imageBigClassifyArr = ref<BigClassify[]>([]);
 
-	const queryBaner = () => {
-		uni.request({
-			url: 'https://tea.qingnian8.com/api/bizhi/homeBanner',
-			method: 'GET',
-			header: {
-				'access-key': '113150'
-			},
-			success(res) {
-				const result = res.data as XxxApiResponse<BannerItem[]>
-				bannerImageArr.value = result.data
-			},
-			fail(err) {
-				console.log(err)
-			},
-			complete() {
-				console.log('请求结束')
-			}
-		})
+	// 轮播图
+	const queryBaner = async () => {
+		const result  =  await requestBannerList();
+		bannerImageArr.value = result.data
 	}
 	// 公告
-	const queryCommonText = () => {
-		uni.request({
-			url: 'https://tea.qingnian8.com/api/bizhi/wallNewsList',
-			method: 'GET',
-			header: {
-				'access-key': '113150'
-			},
-			data: {
-				pageSize: 5
-			},
-			success(res) {
-				const result = res.data as XxxApiResponse<CommonTextItem[]>
-				console.log(result.errCode)
-				commonTextArr.value = result.data
-			},
-			fail(err) {
-				console.log(err)
-			},
-			complete() {
-				console.log('请求结束')
-			}
-		})
+	const queryNoticeList = async() => {
+		const result = await requestNoticeList();
+		commonTextArr.value = result.data
+		console.log("xxxx",commonTextArr.value)
 	}
 
 	// 每日推荐
-	const getDayRandom = async () => {
-		try {
-			const res = await uni.request({
-				url: 'https://tea.qingnian8.com/api/bizhi/randomWall',
-				method: 'GET',
-				header: {
-					'access-key': '113150'
-				}
-			})
-			const result = res.data as XxxApiResponse<DayRecommendImage[]>;
-			if (result.errCode !== 0) {
-				console.log("接口返回错误：", result.errMsg);
-				return;
-			}
-			imageDayRamdomArr.value = result.data;
-
-			console.log("每日推荐：", imageDayRamdomArr.value);
-
-		} catch (error) {
-			console.log("error:", error)
-		}
-
+	const queryDailyRecommend = async() => {
+		const result = await requestDailyRecommend()
+		imageDayRamdomArr.value = result.data;
 	}
+	// 专题精选
+	const queryBigClassify = async() => {
+		const result = await requestBigClassify();
+		imageBigClassifyArr.value = result.data;
+	}
+	
+	onShareAppMessage(()=> {
+		return {
+			title : '我的小程序壁紙',
+			path : '/pages/xianxiami/xxxHome/xxxHome'
+		}
+	})
+	
+	onShareTimeline(()=> {
+		  return {
+		    title: '发现好看的壁纸，快来看看！',
+		  }
+	})
 </script>
 
 <style scoped lang="scss">
